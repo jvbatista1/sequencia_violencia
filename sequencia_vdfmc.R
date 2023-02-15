@@ -1,13 +1,32 @@
 #write.csv(painel, "painel_v2.csv", row.names = F)
 
 library(dplyr)
+library(tidyverse)
 library(TraMineR)
 
-painel <- read.csv("~/pessoal/traminer/painel_v13_stata.csv", sep=";")
+load("C:/Users/Victor/Documents/sequencia_violencia/painel_v7.RData")
+
 colnames(painel)
 
+w2016 <- painel %>% 
+  filter(year == 2016)
+
+w2017 <- painel %>% 
+  filter(year == 2017)
+
+painel <- full_join(w2016, w2017, by = "ID3", suffix = c("_2016", "_2017"))
+
+painel_emo <- painel %>% 
+  drop_na(vio_emo_2016, vio_emo_2017, vio_emo_12_2017)
+
+painel_fis <- painel %>% 
+  drop_na(vio_fis_2016, vio_fis_2017, vio_fis_12_2017)
+
+painel_sex <- painel %>% 
+  drop_na(vio_sex_2016, vio_sex_2017, vio_sex_12_2017)
+
 ########################################
-### Painel com três períodos
+### Painel com tr?s per?odos
 ########################################
 #painel <- rename(painel,
 #       "2016" = violence12_2016,
@@ -15,16 +34,32 @@ colnames(painel)
 #       "2019" = violence12_2019)
 
 ### creating sequence object
-painel.labels <- c('sem ocorrência','ocorrência')
+painel.labels <- c('sem ocorrencia','ocorrencia')
 painel.scode <- c('0', '1')
-painel.seq <- seqdef(painel, c('violence12_2016', 'violence12_2017', 'violence12_2019'), states = painel.scode, labels = painel.labels, xtstep = 1)
+
+painelseq_emo_2 <- seqdef(painel_emo, c('vio_emo_2016', 'vio_emo_12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
+painelseq_emo_3 <- seqdef(painel_emo, c('vio_emo_2016', 'vio_emo_12_2017', 'vio_emo_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
+
+painelseq_fis_2 <- seqdef(painel_fis, c('vio_fis_2016', 'vio_fis_12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
+painelseq_fis_3 <- seqdef(painel_fis, c('vio_fis_2016', 'vio_fis_12_2017', 'vio_fis_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
+
+painelseq_sex_2 <- seqdef(painel_sex, c('vio_sex_2016', 'vio_sex_12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
+painelseq_sex_3 <- seqdef(painel_sex, c('vio_sex_2016', 'vio_sex_12_2017', 'vio_sex_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
 
 ### first 10 sequences
-seqiplot(painel.seq, withlegend = T, title = 'Index plot (10 first sequences)', border = NA)
+seqiplot(painelseq_emo_2, withlegend = T, title = 'Index plot (10 first sequences)', border = NA)
 
 ### 10 most frequent sequences
-seqfplot(painel.seq, withlegend = T, border = NA, title = 'Sequence frequency plot')
-seqtab(painel.seq, format = 'STS', tlim = 1:27)
+seqfplot(painelseq_emo_2, withlegend = T, border = NA, title = 'Sequence frequency plot')
+
+seqtab(painelseq_emo_2, format = 'STS', tlim = 1:27)
+seqtab(painelseq_emo_3, format = 'STS', tlim = 1:27)
+
+seqtab(painelseq_fis_2, format = 'STS', tlim = 1:27)
+seqtab(painelseq_fis_3, format = 'STS', tlim = 1:27)
+
+seqtab(painelseq_sex_2, format = 'STS', tlim = 1:27)
+seqtab(painelseq_sex_3, format = 'STS', tlim = 1:27)
 
 ### state distribution by time points
 seqdplot(painel.seq, withlegend = F, border = NA, title = 'State distribution plot')
@@ -46,7 +81,7 @@ library(cluster)
 clusterward1 <- agnes(dist.om1, diss = T, method = 'ward')
 plot(clusterward1)
 
-### três clusters
+### tr?s clusters
 cli.3 <- cutree(clusterward1, k = 3)
 cli.3 <- factor(cli.3, labels = c("Tipo 1", "Tipo 2", "Tipo 3"))
 #table(cli.3fac)
@@ -61,7 +96,7 @@ seqfplot(painel.seq, group = cli.4, pbarw = T)
 seqmtplot(painel.seq, group = cli.4)
 seqHtplot(painel.seq, group = cli.4, title = 'Entropy index')
 
-### três clusters definido pelo autor
+### tr?s clusters definido pelo autor
 seqfplot(painel.seq, group = painel$tipo, pbarw = T)
 seqmtplot(painel.seq, group = painel$tipo)
 seqHtplot(painel.seq, group = painel$tipo, title = 'Entropy index')
@@ -133,11 +168,11 @@ stargazer(model, type="text", coef=list(model_rrr), p.auto=F, out="modelrrr.htm"
 logitmfx(model, data = painel)
 
 ########################################
-### Painel com dois períodos
+### Painel com dois per?odos
 ########################################
 ### creating sequence object
 ########################################
-painel.labels <- c('sem ocorrência','ocorrência')
+painel.labels <- c('sem ocorr?ncia','ocorr?ncia')
 painel.scode <- c('0', '1')
 painel.seq <- seqdef(painel, c('violence12_2016', 'violence12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
 
@@ -151,8 +186,8 @@ seqtab(painel.seq, format = 'STS', tlim = 1:27)
 ### state distribution by time points
 seqdplot(painel.seq, withlegend = F, border = NA, title = 'State distribution plot')
 
-####### clusterizaçoes alternativas #######
-##### 2 períodos #####
+####### clusteriza?oes alternativas #######
+##### 2 per?odos #####
 #painel_2p <- read.csv("~/pessoal/traminer/painel_v10_2p.csv", sep=";")
 #painel.seq <- seqdef(painel_2p, c('violence12_2016', 'violence12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
 #painel.seq <- seqdef(filter(painel_2p, qChange_partner_2019 == 1), c('violence12_2016', 'violence12_2017'), states = painel.scode, labels = painel.labels, xtstep = 1)
@@ -176,7 +211,7 @@ dist.om1 <- seqdist(painel.seq, method = "OM", indel = 1, sm = submat, with.miss
 clusterward1 <- agnes(dist.om1, diss = T, method = 'ward')
 plot(clusterward1)
 
-### três clusters
+### tr?s clusters
 cli.3 <- cutree(clusterward1, k = 3)
 cli.3 <- factor(cli.3, labels = c("Tipo 1", "Tipo 2", "Tipo 3"))
 
@@ -184,7 +219,7 @@ cli.3 <- factor(cli.3, labels = c("Tipo 1", "Tipo 2", "Tipo 3"))
 seqfplot(painel.seq, group = cli.3, pbarw = T)
 #seqmtplot(painel.seq, group = cli.3)
 
-##### 3 períodos #####
+##### 3 per?odos #####
 #painel_3p <- read.csv("~/pessoal/traminer/painel_v10_3p.csv", sep=";")
 #painel.seq <- seqdef(painel_3p, c('violence12_2016', 'violence12_2017', 'violence12_2019'), states = painel.scode, labels = painel.labels, xtstep = 1)
 painel.seq <- seqdef(filter(painel_3p, qChange_partner_2019 == 1), c('violence12_2016', 'violence12_2017', 'violence12_2019'), states = painel.scode, labels = painel.labels, xtstep = 1)
@@ -208,7 +243,7 @@ dist.om1 <- seqdist(painel.seq, method = "OM", indel = 1, sm = submat, with.miss
 clusterward1 <- agnes(dist.om1, diss = T, method = 'ward')
 plot(clusterward1)
 
-### três clusters
+### tr?s clusters
 cli.3 <- cutree(clusterward1, k = 3)
 cli.3 <- factor(cli.3, labels = c("Tipo 1", "Tipo 2", "Tipo 3"))
 
